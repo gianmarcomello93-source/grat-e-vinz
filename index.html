@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Gratta e Vinci</title>
+
+<style>
+  body {
+    text-align: center;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: white;
+    overflow: hidden;
+  }
+
+  h1 {
+    margin-top: 30px;
+  }
+
+  #container {
+    position: relative;
+    display: inline-block;
+    margin-top: 30px;
+  }
+
+  #message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.5);
+    font-size: 32px;
+    font-weight: bold;
+    color: yellow;
+    opacity: 0;
+    transition: all 0.5s ease;
+    text-shadow: 2px 2px 5px black;
+  }
+
+  canvas {
+    background: linear-gradient(45deg, silver, gray);
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.4);
+    cursor: pointer;
+  }
+
+  /* Monetine */
+  .coin {
+    position: fixed;
+    top: -50px;
+    font-size: 24px;
+    animation: fall linear forwards;
+    pointer-events: none;
+  }
+
+  @keyframes fall {
+    to {
+      transform: translateY(110vh) rotate(360deg);
+      opacity: 0.8;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<h1>🎟️ Gratta e Vinci</h1>
+<p>Gratta con il dito o mouse</p>
+
+<div id="container">
+  <div id="message">🎉 HAI VINTO IL MIO CV 🎉</div>
+  <canvas id="scratch" width="320" height="160"></canvas>
+</div>
+
+<script>
+const canvas = document.getElementById("scratch");
+const ctx = canvas.getContext("2d");
+
+// Copertura
+ctx.fillStyle = "#999";
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+// Effetto gratta
+ctx.globalCompositeOperation = "destination-out";
+
+let scratched = 0;
+let revealed = false;
+
+function createCoins() {
+  for (let i = 0; i < 30; i++) {
+    const coin = document.createElement("div");
+    coin.className = "coin";
+    coin.innerText = "💰";
+
+    coin.style.left = Math.random() * window.innerWidth + "px";
+    coin.style.animationDuration = (2 + Math.random() * 2) + "s";
+    coin.style.fontSize = (20 + Math.random() * 20) + "px";
+
+    document.body.appendChild(coin);
+
+    setTimeout(() => coin.remove(), 4000);
+  }
+}
+
+// Funzione gratta
+function scratch(x, y) {
+  ctx.beginPath();
+  ctx.arc(x, y, 18, 0, Math.PI * 2);
+  ctx.fill();
+
+  scratched++;
+
+  // Vibrazione leggera
+  if (navigator.vibrate) {
+    navigator.vibrate(10);
+  }
+
+  if (scratched > 180 && !revealed) {
+    revealed = true;
+
+    const msg = document.getElementById("message");
+    msg.style.opacity = "1";
+    msg.style.transform = "translate(-50%, -50%) scale(1.2)";
+
+    // Vibrazione vittoria
+    if (navigator.vibrate) {
+      navigator.vibrate([200, 100, 200]);
+    }
+
+    // Monetine 💰
+    createCoins();
+
+    setTimeout(() => {
+      msg.style.transform = "translate(-50%, -50%) scale(1)";
+    }, 200);
+  }
+}
+
+// Mouse
+canvas.addEventListener("mousemove", function(e) {
+  if (e.buttons !== 1) return;
+
+  const rect = canvas.getBoundingClientRect();
+  scratch(e.clientX - rect.left, e.clientY - rect.top);
+});
+
+// Touch
+canvas.addEventListener("touchmove", function(e) {
+  e.preventDefault();
+
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.touches[0];
+
+  scratch(touch.clientX - rect.left, touch.clientY - rect.top);
+}, { passive: false });
+
+</script>
+
+</body>
+</html>
